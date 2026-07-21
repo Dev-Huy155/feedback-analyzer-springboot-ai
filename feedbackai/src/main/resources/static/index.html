@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feedback Lens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F7FB;
+    --surface:#FFFFFF;
+    --ink:#171A26;
+    --muted:#6B7180;
+    --line:#E7E9F0;
+    --accent:#5B4BE0;
+    --accent-soft:#EEEBFB;
+    --pos:#15A34A;   --pos-soft:#E6F6EC;
+    --neg:#DC2626;   --neg-soft:#FBEAEA;
+    --neu:#C2820B;   --neu-soft:#FBF2DE;
+    --unknown:#8A8F9C; --unknown-soft:#EEF0F4;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(23,26,38,.04),0 8px 24px rgba(23,26,38,.05);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    line-height:1.5;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px 80px;}
+
+  /* Header */
+  header{
+    border-bottom:1px solid var(--line);background:var(--surface);
+    position:sticky;top:0;z-index:10;
+  }
+  .header-inner{
+    max-width:960px;margin:0 auto;padding:16px 20px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .mark{
+    width:34px;height:34px;border-radius:9px;flex:none;
+    background:linear-gradient(135deg,var(--accent),#8B7BF0);
+    display:grid;place-items:center;color:#fff;
+    font-family:'Space Grotesk';font-weight:700;font-size:18px;
+  }
+  .brand h1{font-family:'Space Grotesk';font-size:18px;font-weight:600;margin:0;letter-spacing:-.01em;}
+  .brand p{margin:0;font-size:12.5px;color:var(--muted);}
+  .stack-badge{
+    margin-left:auto;font-size:11.5px;color:var(--muted);
+    border:1px solid var(--line);border-radius:999px;padding:5px 11px;
+    white-space:nowrap;
+  }
+
+  /* Hero: analyze card */
+  .hero{margin-top:34px;}
+  .eyebrow{
+    font-family:'Space Grotesk';font-size:12px;font-weight:600;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--accent);
+  }
+  .hero h2{
+    font-family:'Space Grotesk';font-weight:600;font-size:30px;
+    line-height:1.15;letter-spacing:-.02em;margin:8px 0 6px;
+  }
+  .hero .sub{color:var(--muted);font-size:15px;margin:0 0 22px;max-width:52ch;}
+
+  .card{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);
+  }
+  .analyze{padding:22px;}
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;font-size:12.5px;font-weight:600;color:var(--ink);
+    margin-bottom:6px;
+  }
+  input[type=text],textarea{
+    width:100%;font-family:inherit;font-size:14.5px;color:var(--ink);
+    background:#FBFBFD;border:1px solid var(--line);border-radius:10px;
+    padding:11px 13px;resize:vertical;transition:border-color .15s,box-shadow .15s;
+  }
+  textarea{min-height:96px;}
+  input:focus,textarea:focus{
+    outline:none;border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);
+  }
+  .btn{
+    font-family:'Space Grotesk';font-weight:600;font-size:14px;
+    border:none;border-radius:10px;padding:11px 20px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:9px;transition:transform .08s,filter .15s;
+  }
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{filter:brightness(1.06);}
+  .btn-primary:active{transform:translateY(1px);}
+  .btn:disabled{opacity:.6;cursor:not-allowed;}
+  .spinner{
+    width:15px;height:15px;border:2px solid rgba(255,255,255,.45);
+    border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Result block */
+  .result{
+    margin-top:16px;padding-top:18px;border-top:1px dashed var(--line);
+    display:none;animation:rise .35s ease;
+  }
+  .result.show{display:block;}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .result-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .result-label{font-size:12.5px;color:var(--muted);}
+  .summary-text{font-size:15px;color:var(--ink);}
+
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:'Space Grotesk';font-weight:600;font-size:12.5px;
+    padding:4px 11px;border-radius:999px;
+  }
+  .badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;}
+  .badge.pos{color:var(--pos);background:var(--pos-soft);}
+  .badge.neg{color:var(--neg);background:var(--neg-soft);}
+  .badge.neu{color:var(--neu);background:var(--neu-soft);}
+  .badge.unknown{color:var(--unknown);background:var(--unknown-soft);}
+
+  /* Section heading */
+  .section{margin-top:44px;}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;}
+  .section-head h3{font-family:'Space Grotesk';font-weight:600;font-size:17px;margin:0;letter-spacing:-.01em;}
+  .section-head .hint{font-size:12.5px;color:var(--muted);}
+
+  /* Stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .stat{padding:16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);}
+  .stat .num{font-family:'Space Grotesk';font-weight:700;font-size:28px;line-height:1;letter-spacing:-.02em;}
+  .stat .lbl{font-size:12px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:6px;}
+  .dot{width:8px;height:8px;border-radius:50%;}
+  .dot.pos{background:var(--pos);}.dot.neg{background:var(--neg);}.dot.neu{background:var(--neu);}
+  .bar{height:6px;border-radius:999px;background:var(--line);overflow:hidden;display:flex;margin-top:22px;}
+  .bar span{height:100%;}
+  .bar .pos{background:var(--pos);}.bar .neg{background:var(--neg);}.bar .neu{background:var(--neu);}
+
+  /* Ask AI */
+  .ask{padding:20px;}
+  .ask-row{display:flex;gap:10px;}
+  .ask-row input{flex:1;}
+  .answer{
+    margin-top:14px;background:#FBFBFD;border:1px solid var(--line);
+    border-radius:12px;padding:14px 16px;font-size:14.5px;display:none;
+  }
+  .answer.show{display:block;animation:rise .3s ease;}
+  .answer .who{font-family:'Space Grotesk';font-size:11.5px;font-weight:600;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px;}
+
+  /* Feedback list */
+  .list{display:flex;flex-direction:column;gap:10px;}
+  .item{
+    padding:16px 18px;background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);display:flex;gap:14px;align-items:flex-start;
+  }
+  .item-body{flex:1;min-width:0;}
+  .item-meta{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
+  .item-name{font-weight:600;font-size:14px;}
+  .item-time{font-size:12px;color:var(--muted);}
+  .item-content{font-size:14px;color:var(--ink);margin-bottom:5px;word-wrap:break-word;}
+  .item-summary{font-size:13px;color:var(--muted);}
+  .del{
+    flex:none;border:1px solid var(--line);background:var(--surface);color:var(--muted);
+    width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px;line-height:1;
+    transition:color .15s,border-color .15s;
+  }
+  .del:hover{color:var(--neg);border-color:var(--neg);}
+
+  .empty{
+    text-align:center;padding:40px 20px;color:var(--muted);
+    border:1px dashed var(--line);border-radius:var(--radius);font-size:14px;
+  }
+  .toast{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-size:13.5px;
+    opacity:0;pointer-events:none;transition:.25s;z-index:50;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  footer{margin-top:56px;text-align:center;font-size:12.5px;color:var(--muted);}
+
+  @media(max-width:640px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .hero h2{font-size:25px;}
+    .ask-row{flex-direction:column;}
+  }
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="mark">F</div>
+    <div class="brand">
+      <h1>Feedback Lens</h1>
+      <p>See what customers really mean</p>
+    </div>
+    <span class="stack-badge">Spring Boot · Gemini AI</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- HERO: analyze -->
+  <section class="hero">
+    <div class="eyebrow">AI sentiment analysis</div>
+    <h2>Turn a raw review into a decision</h2>
+    <p class="sub">Paste any piece of customer feedback. The AI reads it, labels the sentiment, and gives you a one-line summary — instantly.</p>
+
+    <div class="card analyze">
+      <div class="field">
+        <label for="name">Customer name</label>
+        <input type="text" id="name" placeholder="e.g. Huy Nguyen">
+      </div>
+      <div class="field">
+        <label for="content">Their feedback</label>
+        <textarea id="content" placeholder="e.g. Delivery was fast but the packaging felt flimsy. Product itself is great."></textarea>
+      </div>
+      <button class="btn btn-primary" id="analyzeBtn" onclick="analyze()">
+        <span id="analyzeLabel">Analyze review</span>
+      </button>
+
+      <div class="result" id="result">
+        <div class="result-top">
+          <span class="result-label">Result</span>
+          <span id="resultBadge" class="badge unknown">Unclassified</span>
+        </div>
+        <p class="summary-text" id="resultSummary"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="section">
+    <div class="section-head">
+      <h3>Overview</h3>
+      <span class="hint">Live counts across all feedback</span>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="num" id="statTotal">0</div>
+        <div class="lbl">Total feedback</div>
+      </div>
+      <div class="stat">
+        <div class="num" id="statPos" style="color:var(--pos)">0</div>
+        <div class="lbl"><span class="dot pos"></span>Positive</div>
+      </div>
+      <div class="stat">
+        <div class="num" id="statNeg" style="color:var(--neg)">0</div>
+        <div class="lbl"><span class="dot neg"></span>Negative</div>
+      </div>
+      <div class="stat">
+        <div class="num" id="statNeu" style="color:var(--neu)">0</div>
+        <div class="lbl"><span class="dot neu"></span>Neutral</div>
+      </div>
+    </div>
+    <div class="bar" id="bar"></div>
+  </section>
+
+  <!-- ASK AI -->
+  <section class="section">
+    <div class="section-head">
+      <h3>Ask across all feedback</h3>
+      <span class="hint">The AI reads every review to answer</span>
+    </div>
+    <div class="card ask">
+      <div class="ask-row">
+        <input type="text" id="question" placeholder="e.g. What do customers complain about most?"
+               onkeydown="if(event.key==='Enter')ask()">
+        <button class="btn btn-primary" id="askBtn" onclick="ask()">
+          <span id="askLabel">Ask AI</span>
+        </button>
+      </div>
+      <div class="answer" id="answer">
+        <div class="who">AI answer</div>
+        <div id="answerText"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIST -->
+  <section class="section">
+    <div class="section-head">
+      <h3>All feedback</h3>
+      <span class="hint" id="listCount"></span>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <footer>Built with Spring Boot · Spring Data JPA · Google Gemini API</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api/feedbacks';
+
+// ---- helpers ----
+function badgeClass(s){
+  if(s==='POSITIVE')return'pos'; if(s==='NEGATIVE')return'neg';
+  if(s==='NEUTRAL')return'neu'; return'unknown';
+}
+function badgeText(s){
+  if(s==='POSITIVE')return'Positive'; if(s==='NEGATIVE')return'Negative';
+  if(s==='NEUTRAL')return'Neutral'; return'Unclassified';
+}
+function fmtTime(iso){
+  if(!iso)return'';
+  try{const d=new Date(iso);return d.toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
+  catch(e){return'';}
+}
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+function loading(btn,label,on,text){
+  btn.disabled=on;
+  label.innerHTML = on ? '<span class="spinner"></span>'+text : text;
+}
+
+// ---- analyze a review ----
+async function analyze(){
+  const name=document.getElementById('name').value.trim();
+  const content=document.getElementById('content').value.trim();
+  if(!content){toast('Add some feedback text first');return;}
+
+  const btn=document.getElementById('analyzeBtn');
+  const label=document.getElementById('analyzeLabel');
+  loading(btn,label,true,'Analyzing…');
+
+  try{
+    const res=await fetch(API,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({customerName:name||'Anonymous',content})
+    });
+    if(!res.ok)throw new Error('server '+res.status);
+    const fb=await res.json();
+
+    const badge=document.getElementById('resultBadge');
+    badge.className='badge '+badgeClass(fb.sentiment);
+    badge.textContent=badgeText(fb.sentiment);
+    document.getElementById('resultSummary').textContent=fb.summary||'—';
+    document.getElementById('result').classList.add('show');
+
+    document.getElementById('content').value='';
+    document.getElementById('name').value='';
+    await refresh();
+  }catch(e){
+    toast('Could not reach the server. Is the app running?');
+  }finally{
+    loading(btn,label,false,'Analyze review');
+  }
+}
+
+// ---- ask AI ----
+async function ask(){
+  const q=document.getElementById('question').value.trim();
+  if(!q){toast('Type a question first');return;}
+
+  const btn=document.getElementById('askBtn');
+  const label=document.getElementById('askLabel');
+  loading(btn,label,true,'Thinking…');
+
+  try{
+    const res=await fetch(API+'/ask',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({question:q})
+    });
+    if(!res.ok)throw new Error('server '+res.status);
+    const data=await res.json();
+    document.getElementById('answerText').textContent=data.answer||'—';
+    document.getElementById('answer').classList.add('show');
+  }catch(e){
+    toast('Could not get an answer. Is the app running?');
+  }finally{
+    loading(btn,label,false,'Ask AI');
+  }
+}
+
+// ---- delete ----
+async function del(id){
+  try{
+    await fetch(API+'/'+id,{method:'DELETE'});
+    await refresh();
+    toast('Feedback removed');
+  }catch(e){toast('Could not delete');}
+}
+
+// ---- load list + stats ----
+async function refresh(){
+  try{
+    const [listRes,statsRes]=await Promise.all([fetch(API),fetch(API+'/stats')]);
+    const items=await listRes.json();
+    const stats=await statsRes.json();
+    renderStats(stats);
+    renderList(items);
+  }catch(e){/* server not up yet */}
+}
+
+function renderStats(stats){
+  const pos=stats.POSITIVE||0, neg=stats.NEGATIVE||0, neu=stats.NEUTRAL||0;
+  const total=Object.values(stats).reduce((a,b)=>a+b,0);
+  document.getElementById('statTotal').textContent=total;
+  document.getElementById('statPos').textContent=pos;
+  document.getElementById('statNeg').textContent=neg;
+  document.getElementById('statNeu').textContent=neu;
+  const bar=document.getElementById('bar');
+  if(total===0){bar.innerHTML='';return;}
+  const pct=n=>(n/total*100).toFixed(1)+'%';
+  bar.innerHTML=
+    `<span class="pos" style="width:${pct(pos)}"></span>`+
+    `<span class="neu" style="width:${pct(neu)}"></span>`+
+    `<span class="neg" style="width:${pct(neg)}"></span>`;
+}
+
+function renderList(items){
+  const list=document.getElementById('list');
+  const count=document.getElementById('listCount');
+  if(!items||items.length===0){
+    list.innerHTML='<div class="empty">No feedback yet. Analyze your first review above to see it here.</div>';
+    count.textContent='';
+    return;
+  }
+  count.textContent=items.length+' total';
+  // newest first
+  items.sort((a,b)=>(b.id||0)-(a.id||0));
+  list.innerHTML=items.map(fb=>`
+    <div class="item">
+      <div class="item-body">
+        <div class="item-meta">
+          <span class="item-name">${esc(fb.customerName)||'Anonymous'}</span>
+          <span class="badge ${badgeClass(fb.sentiment)}">${badgeText(fb.sentiment)}</span>
+          <span class="item-time">${fmtTime(fb.createdAt)}</span>
+        </div>
+        <div class="item-content">${esc(fb.content)}</div>
+        <div class="item-summary">${esc(fb.summary)}</div>
+      </div>
+      <button class="del" title="Delete" onclick="del(${fb.id})">✕</button>
+    </div>`).join('');
+}
+
+function esc(s){
+  if(s==null)return'';
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// initial load
+refresh();
+</script>
+</body>
+</html>
