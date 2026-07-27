@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feedback Lens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+	<header>
+		<div class ="header-inner">
+				<div class="mark">F</div>
+				<div class="brand">
+					<h1>FeedBack AI</h1>
+					<p>See what customers really mean</p>
+				</div>
+			</div>
+	</header>
+	<div class="wrap">
+		<section class="hero">
+			<div class="card analyze">
+				<div class="field">
+					<label for="name "> Customer name </label>
+					<input type="text" id="name" placeholder="e.g. Huy Nguyen">
+					
+				</div>
+				<div class="field">
+					<label for="content" >Their feedback</label>
+					<textarea id="content" placeholder="e.g Delivery was fast but the packaging  felt flimsy. Product itself is great."></textarea>
+				</div>
+				<button class="btn btn-primary" id="analyzeBtn" onclick="analyze()">
+					<span id = "analyzeLable"> Analyze review</span>
+				</button>
+				<div class="result" id="result">
+				       <div class="result-top">
+				         <span class="result-label">Result</span>
+				         <span id="resultBadge" class="badge unknown">Unclassified</span>
+				       </div>
+				       <p class="summary-text" id="resultSummary"></p>
+			     </div>
+				
+			</div>
+			
+		</section>
+		
+		<section class="section">
+			<div class="section-head">
+				<h3>Ask across all feedback</h3>
+				<span class="hint">The AI reads every review to answer</span>
+			</div>
+			<div class="card ask">
+				<div class="ask-row">
+					<input type="text" id ="question" placeholder="e.g. What do customers complain about most?"
+					onkeydown="if(event.key==='Enter') ask()">
+					<button class="btn btn-primary" id="askBtn" onclick="ask()" ><span id="askLabel">Ask AI</span></button>
+					
+				</div>
+				<div class="answer" id="answer">
+				        <div class="who">AI answer</div>
+				        <div id="answerText"></div>
+			    </div>
+				
+			</div>
+			
+		</section>
+		<section class="section">
+			<div class="section-head">
+				<h3>All feedback</h3>
+				<span class="hint" id="listCount"></span>
+			</div>
+			<div class ="list" id="list"></div>
+		</section>
+		<footer>Built with Spring Boot . Spring Data JPA . Google Gemini API</footer>
+		
+	</div>
+	<div class="toast" id="toast"></div>
+	<script>
+		const APT= '/api/feedbacks";
+		function badgeClass(s){
+			if(s==='POSITIVE')return'pos';if(s==='NAGATIVE')return'neg';
+			if(s==='NEUTRAL')return'neu';return 'Unclassified'
+		}
+		function badgeText(s){
+			if(s==='POSITIVE')return'pos';if(s==='NAGATIVE')return'neg';
+			if(s==='NEUTRAL')return'neu';return 'Unclassified'	
+		}
+		function fmtTime(iso){
+			if(!iso)return;
+			try{const d= new Date(iso);return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
+			catch(e){return''}
+		}
+		function toast(msg){
+			const t= document.getElementById(toast);
+			t.textContent=msg;t.classList.add('show')
+			setTimeout(()=>t.classList.removeP('show'),2200);
+		}
+		function loading(btn,label,on,text){
+			btn.disabled=on;
+			label.innerHTML=on? 'span class ="spinner ></span>'+text :text;
+		}
+				
+		
+		
+	</script>
+	
+</body>
+	
+</html>
