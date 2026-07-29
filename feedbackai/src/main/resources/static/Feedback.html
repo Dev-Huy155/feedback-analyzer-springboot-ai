@@ -1,50 +1,57 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Feedback Lens</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Feedback Lens</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link
+		href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+		rel="stylesheet">
+		
 </head>
+
 <body>
 	<header>
-		<div class ="header-inner">
-				<div class="mark">F</div>
-				<div class="brand">
-					<h1>FeedBack AI</h1>
-					<p>See what customers really mean</p>
-				</div>
+		<div class="header-inner">
+			<div class="mark">F</div>
+			<div class="brand">
+				<h1>FeedBack AI</h1>
+				<p>See what customers really mean</p>
 			</div>
+		</div>
 	</header>
 	<div class="wrap">
 		<section class="hero">
 			<div class="card analyze">
 				<div class="field">
-					<label for="name "> Customer name </label>
+					<label for="name"> Customer name </label>
 					<input type="text" id="name" placeholder="e.g. Huy Nguyen">
-					
+
 				</div>
 				<div class="field">
-					<label for="content" >Their feedback</label>
-					<textarea id="content" placeholder="e.g Delivery was fast but the packaging  felt flimsy. Product itself is great."></textarea>
+					<label for="content">Their feedback</label>
+					<textarea id="content"
+						placeholder="e.g Delivery was fast but the packaging  felt flimsy. Product itself is great."></textarea>
 				</div>
-				<button class="btn btn-primary" id="analyzeBtn" onclick="analyze()">
-					<span id = "analyzeLable"> Analyze review</span>
+				<button class="btn btn-primary" id="analyzeBtn" onclick="feedbackAI()">
+					<span id="analyzeLabel"> Analyze review</span>
 				</button>
 				<div class="result" id="result">
-				       <div class="result-top">
-				         <span class="result-label">Result</span>
-				         <span id="resultBadge" class="badge unknown">Unclassified</span>
-				       </div>
-				       <p class="summary-text" id="resultSummary"></p>
-			     </div>
-				
+					<div class="result-top">
+						<span class="result-label">Result</span>
+						<span id="resultBadge" class="badge unknown">Unclassified</span>
+					</div>
+					<p class="summary-text" id="resultSummary"></p>
+				</div>
+
 			</div>
-			
+
 		</section>
-		
+
+
 		<section class="section">
 			<div class="section-head">
 				<h3>Ask across all feedback</h3>
@@ -52,59 +59,165 @@
 			</div>
 			<div class="card ask">
 				<div class="ask-row">
-					<input type="text" id ="question" placeholder="e.g. What do customers complain about most?"
-					onkeydown="if(event.key==='Enter') ask()">
-					<button class="btn btn-primary" id="askBtn" onclick="ask()" ><span id="askLabel">Ask AI</span></button>
-					
+					<input type="text" id="question" placeholder="e.g. What do customers complain about most?"
+						onkeydown="if(event.key==='Enter') ask()">
+					<button class="btn btn-primary" id="askBtn" onclick="ask()"><span id="askLabel">Ask
+							AI</span></button>
+
 				</div>
 				<div class="answer" id="answer">
-				        <div class="who">AI answer</div>
-				        <div id="answerText"></div>
-			    </div>
-				
+					<div class="who">AI answer</div>
+					<div id="answerText"></div>
+				</div>
+
 			</div>
-			
+
 		</section>
 		<section class="section">
 			<div class="section-head">
 				<h3>All feedback</h3>
 				<span class="hint" id="listCount"></span>
 			</div>
-			<div class ="list" id="list"></div>
+			<div class="list" id="list"></div>
 		</section>
 		<footer>Built with Spring Boot . Spring Data JPA . Google Gemini API</footer>
-		
+
 	</div>
 	<div class="toast" id="toast"></div>
 	<script>
-		const APT= '/api/feedbacks";
-		function badgeClass(s){
-			if(s==='POSITIVE')return'pos';if(s==='NAGATIVE')return'neg';
-			if(s==='NEUTRAL')return'neu';return 'Unclassified'
+		const API = '/api/feedbacks';
+		function badgeClass(s) {
+			if (s === 'POSITIVE') return 'pos'; if (s === 'NEGATIVE') return 'neg';
+			if (s === 'NEUTRAL') return 'neu'; return 'unknown'
 		}
-		function badgeText(s){
-			if(s==='POSITIVE')return'pos';if(s==='NAGATIVE')return'neg';
-			if(s==='NEUTRAL')return'neu';return 'Unclassified'	
+		function badgeText(s) {
+			if (s === 'POSITIVE') return 'Positive'; if (s === 'NEGATIVE') return 'Negative';
+			if (s === 'NEUTRAL') return 'Neutral'; return 'Unclassified'
 		}
-		function fmtTime(iso){
-			if(!iso)return;
-			try{const d= new Date(iso);return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
-			catch(e){return''}
+		function fmtTime(iso) {
+			if (!iso) return;
+			try {const d = new Date(iso); return d.toLocaleDateString('en-GB', {day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'});}
+			catch (e) {return '';}
 		}
-		function toast(msg){
-			const t= document.getElementById(toast);
-			t.textContent=msg;t.classList.add('show')
-			setTimeout(()=>t.classList.removeP('show'),2200);
+		function toast(msg) {
+			const t = document.getElementById('toast');
+			t.textContent = msg; t.classList.add('show')
+			setTimeout(() => t.classList.remove('show'), 2200);
 		}
-		function loading(btn,label,on,text){
-			btn.disabled=on;
-			label.innerHTML=on? 'span class ="spinner ></span>'+text :text;
+		function loading(btn, label, on, text) {
+			btn.disabled = on;
+			label.innerHTML = on ? '<span class="spinner"></span>'+text : text;
 		}
-				
+		async function feedbackAI() {
+			const badge = document.getElementById('resultBadge');
+			const name = document.getElementById('name').value.trim();
+			const content = document.getElementById('content').value.trim();
+			if (!content) {toast('Add some feedback text first'); return }
+			const btn = document.getElementById('analyzeBtn');
+			const lable = document.getElementById('analyzeLabel');
+			loading(btn, lable, true, 'Analyzing...');
+			try {
+				const res = await fetch(API, {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({customerName: name || 'Anonymous', content})
+
+				});
+
+				if (!res.ok) throw new Error('server' + res.status);
+
+				const fb = await res.json();
+				badge.className = 'badge' + badgeClass(fb.sentiment);
+				badge.textContent = badgeText(fb.sentiment);
+				document.getElementById('resultSummary').textContent = fb.summary || '-';
+				document.getElementById('result').classList.add('show');
+				document.getElementById('content').value = '';
+				document.getElementById('name').value = '';
+				await refresh();
+			} catch (e) {
+				toast('Could not reach the server .Is the app running?')
+
+
+			} finally {
+				loading(btn, lable, false, 'Analyze review');
+
+
+			}
+
+
+
+		}
+		async function ask() {
+			const q = document.getElementById('question').value.trim();
+			if (!q) {toast('Type a question first'); return;}
+
+			const btn = document.getElementById('askBtn');
+			const label = document.getElementById('askLabel');
+			loading(btn, label, true, 'Thinking…');
+
+			try {
+				const res = await fetch(API + '/ask', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({question: q})
+				});
+				if (!res.ok) throw new Error('server ' + res.status);
+				const data = await res.json();
+				document.getElementById('answerText').textContent = data.answer || '—';
+				document.getElementById('answer').classList.add('show');
+			} catch (e) {
+				toast('Could not get an answer. Is the app running?');
+			} finally {
+				loading(btn, label, false, 'Ask AI');
+			}
+		}
+
+		async function refresh() {
+			try {
+				const [listRes, statsRes] = await Promise.all([fetch(API), fetch(API + '/stats')]);
+				const items = await listRes.json();
+				const stats = await statsRes.json();
+				renderList(items);
+			} catch (e) {/* server not up yet */}
+		}
+
 		
+		function renderList(items) {
+			const list = document.getElementById('list');
+			const count = document.getElementById('listCount');
+			if (!items || items.length === 0) {
+				list.innerHTML = '<div class="empty">No feedback yet. Analyze your first review above to see it here.</div>';
+				count.textContent = '';
+				return;
+			}
+			count.textContent = items.length + ' total';
+			// newest first
+			items.sort((a, b) => (b.id || 0) - (a.id || 0));
+			list.innerHTML = items.map(fb => `
+		    <div class="item">
+		      <div class="item-body">
+		        <div class="item-meta">
+		          <span class="item-name">${esc(fb.customerName) || 'Anonymous'}</span>
+		          <span class="badge ${badgeClass(fb.sentiment)}">${badgeText(fb.sentiment)}</span>
+		          <span class="item-time">${fmtTime(fb.createdAt)}</span>
+		        </div>
+		        <div class="item-content">${esc(fb.content)}</div>
+		        <div class="item-summary">${esc(fb.summary)}</div>
+		      </div>
+		      <button class="del" title="Delete" onclick="del(${fb.id})">✕</button>
+		    </div>`).join('');
+		}
+
+		function esc(s) {
+			if (s == null) return '';
+			return String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+		}
+
+		// initial load
 		
+		refresh();
 	</script>
-	
+
 </body>
-	
+
 </html>
